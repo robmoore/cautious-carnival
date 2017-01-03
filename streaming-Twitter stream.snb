@@ -1,0 +1,207 @@
+{
+	"metadata": {
+		"name": "Twitter stream",
+		"user_save_timestamp": "1970-01-01T01:00:00.000Z",
+		"auto_save_timestamp": "1970-01-01T01:00:00.000Z",
+		"language_info": {
+			"name": "scala",
+			"file_extension": "scala",
+			"codemirror_mode": "text/x-scala"
+		},
+		"trusted": true,
+		"customLocalRepo": "/tmp/repo",
+		"customRepos": null,
+		"customDeps": ["org.apache.bahir % spark-streaming-twitter_2.11 % 2.0.1"],
+		"customImports": null,
+		"customArgs": ["-Dtwitter4j.oauth.consumerKey=", "-Dtwitter4j.oauth.consumerSecret=", "-Dtwitter4j.oauth.accessToken=", "-Dtwitter4j.oauth.accessTokenSecret="],
+		"customSparkConf": null
+	},
+	"cells": [{
+		"metadata": {
+			"id": "ACC0839401D84B1B8A4872D4893F40FE"
+		},
+		"cell_type": "markdown",
+		"source": "#Twitter example"
+	}, {
+		"metadata": {
+			"id": "5EBB57BD1CA94EAB8DA7C882475BC113"
+		},
+		"cell_type": "markdown",
+		"source": "## Spark streaming"
+	}, {
+		"metadata": {
+			"id": "EA44ACCA11C64C0788827DFA3E6C4C32"
+		},
+		"cell_type": "markdown",
+		"source": "### Create context with batch 2s "
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "1EEFBC5B679F43149A20D54F96DC2B72"
+		},
+		"cell_type": "code",
+		"source": "import org.apache.spark.streaming.{Seconds, StreamingContext}\nimport org.apache.spark.SparkContext._\nimport org.apache.spark.streaming.twitter._\n\nval ssc = new StreamingContext(sparkContext, Seconds(2))",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "06F12FF3EB154BE8872CBE6BB6D40D50"
+		},
+		"cell_type": "markdown",
+		"source": "### Listen twitter stream "
+	}, {
+		"metadata": {
+			"id": "ACEEA5A41B0D463A894F06E61F24EC7F"
+		},
+		"cell_type": "markdown",
+		"source": "#### We're going to **filter** the tweets to only those containing the following words."
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "F943BB07065842DD8ABCFECF0F189914"
+		},
+		"cell_type": "code",
+		"source": "val filters = Array(\"spark\", \"scala\", \"music\")",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "BA45E1DCABB043499A83BB749253BD19"
+		},
+		"cell_type": "markdown",
+		"source": "#### Create the twitter listeners"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "A3F990E242A74130805D88C7ABAF2816"
+		},
+		"cell_type": "code",
+		"source": "val twitterStream = TwitterUtils.createStream(ssc, None, filters)",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "ED32092C0E9742588FE71F045CEE660F"
+		},
+		"cell_type": "markdown",
+		"source": "#### Count by hashtag and sort  "
+	}, {
+		"metadata": {
+			"id": "944761AFAED140AA878AB617DCF78BDF"
+		},
+		"cell_type": "markdown",
+		"source": "##### The windows are `60s` long"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "F3E8BE73ED3F41BAB20238AAA2B9E8B7"
+		},
+		"cell_type": "code",
+		"source": "import StreamingContext._\nval hashTags = twitterStream.flatMap(status => status.getText.split(\" \").filter(_.startsWith(\"#\")))\n\nval topCounts60 = hashTags.map((_, 1)).reduceByKeyAndWindow(_ + _, Seconds(60))\n                          .map{case (topic, count) => (count, topic)}\n                          .transform(_.sortByKey(false))",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "D8E052B72A92420686B1E3594AB5D43B"
+		},
+		"cell_type": "markdown",
+		"source": "##### Creating the text output to be updated by the stream of result "
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"output_stream_collapsed": true,
+			"collapsed": false,
+			"id": "2CA66741B5784E19A96FBA44B50F7DDD"
+		},
+		"cell_type": "code",
+		"source": "val result = ul(10)",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "E7028B357841436E9533420F49C424B4"
+		},
+		"cell_type": "markdown",
+		"source": "##### Let's show the 10 first hashtag every window "
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "775441766AF04EC288B7DDFFA3A0EB61"
+		},
+		"cell_type": "code",
+		"source": "// Print popular hashtags\ntopCounts60.foreachRDD(rdd => {\n  val topList = rdd.take(10).toList\n  val r = topList.map{case (count, tag) => s\"$tag: $count\"}\n  result(r)\n})",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "BA58B2ED057C473086A38126627FB084"
+		},
+		"cell_type": "markdown",
+		"source": "### Show the Geolocations"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "68EBBD815E334A0984EE912082995608"
+		},
+		"cell_type": "code",
+		"source": "val geo = widgets.charts.GeoPointsChart(Seq((0d,0d, \"init\")))",
+		"outputs": []
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"output_stream_collapsed": true,
+			"collapsed": false,
+			"id": "986FA39755E440D4A0FD6D6FA6F17D93"
+		},
+		"cell_type": "code",
+		"source": "twitterStream .window(Seconds(60), Seconds(6))  \n              . filter{ s => \n                s.getGeoLocation() != null\n              }\n              .map(s => (s.getGeoLocation().getLatitude(), s.getGeoLocation().getLongitude(), s.getText()))\n              .foreachRDD{rdd => \n                geo.applyOn(rdd.take(100))\n              }",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "94D2DFABFD4746B88D1080247AF518B9"
+		},
+		"cell_type": "markdown",
+		"source": "###  Start listening twitter"
+	}, {
+		"metadata": {
+			"id": "2E959318D8934AF8850352FAD611BF61"
+		},
+		"cell_type": "markdown",
+		"source": "This will listen the twitter stream, and the computation above will update the `resuilt` every `2s` using the last `60s` of values."
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "C7595F0E7EF4428985D412C6E67C63B4"
+		},
+		"cell_type": "code",
+		"source": "ssc.start()",
+		"outputs": []
+	}, {
+		"metadata": {
+			"id": "8DBCA3CD9BF949D4B866EBADB4B06EA1"
+		},
+		"cell_type": "markdown",
+		"source": "### Stop listening twitter "
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "F1D61D1BF71E449D8ABF66D5C2F00F5A"
+		},
+		"cell_type": "code",
+		"source": "// commented to all 'run all' :-D\n//ssc.stop()",
+		"outputs": []
+	}],
+	"nbformat": 4
+}
