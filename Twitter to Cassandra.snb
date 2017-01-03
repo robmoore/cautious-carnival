@@ -1,1 +1,446 @@
-{"metadata":{"name":"Getting Started with Spark and Cassandra","user_save_timestamp":"1970-01-01T01:00:00.000Z","auto_save_timestamp":"1970-01-01T01:00:00.000Z","language_info":{"name":"scala","file_extension":"scala","codemirror_mode":"text/x-scala"},"trusted":true,"customLocalRepo":"/tmp/repo","customRepos":null,"customDeps":["com.datastax.spark % spark-cassandra-connector_2.11 % 2.0.0-M3"],"customImports":null,"customArgs":null,"customSparkConf":{"spark.cassandra.connection.host":"172.17.0.2"}},"cells":[{"metadata":{"id":"B27ADAF4F2D14D22BF003C4BE71AE9CF"},"cell_type":"markdown","source":"#Getting Started with Spark and Cassandra"},{"metadata":{"id":"8F429C2988A746F9858E1CE9C4D029E2"},"cell_type":"markdown","source":"##This notebook shows you how to get Spark and Cassandra working together. \nTo try this notebook you will need an existing Cassandra instance, either a local server or a cluster.\nWe require the ip address of one seed node from that Cassandra single server or cluster.\n\n_This notebook is an adaptation of the [Quick Stark Guide](https://github.com/datastax/spark-cassandra-connector/blob/master/doc/0_quick_start.md) from the [Spark Cassandra Connector Repository](https://github.com/datastax/spark-cassandra-connector)_"},{"metadata":{"id":"90D4C542F8224C14AE7446A5EB6CF240"},"cell_type":"markdown","source":"##Create a keyspace and a table for our test"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":false,"id":"FAE34CA22AF44F809895EFD8E0E16FF7"},"cell_type":"code","source":"val createKeyspace = \"CREATE KEYSPACE IF NOT EXISTS test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };\" \nval createTable = \"CREATE TABLE IF NOT EXISTS test.kv(key text PRIMARY KEY, value int);\"","outputs":[{"name":"stdout","output_type":"stream","text":"createKeyspace: String = CREATE KEYSPACE IF NOT EXISTS test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };\ncreateTable: String = CREATE TABLE IF NOT EXISTS test.kv(key text PRIMARY KEY, value int);\n"},{"metadata":{},"data":{"text/html":""},"output_type":"execute_result","execution_count":1,"time":"Took: 1 second 491 milliseconds, at 2016-12-31 5:16"}]},{"metadata":{"id":"2B0308FEFC1A49338A2AECF718B499A7"},"cell_type":"markdown","source":"_We are going to use the Cassandra connector in \"manual\" mode to execute those statements_\nFor that, we first need the Spark Conf object that now contains all information we need to connect to Cassandra"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":false,"id":"EF7906B66C2B4BCA82F4DE38121CA926"},"cell_type":"code","source":"val sparkConf = sparkContext.getConf","outputs":[{"name":"stdout","output_type":"stream","text":"sparkConf: org.apache.spark.SparkConf = org.apache.spark.SparkConf@225a9fc6\n"},{"metadata":{},"data":{"text/html":""},"output_type":"execute_result","execution_count":1,"time":"Took: 862 milliseconds, at 2016-12-31 5:20"}]},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":false,"id":"908F81AB26D84C7D84861DA7A649E7D5"},"cell_type":"code","source":"import com.datastax.spark.connector.cql.CassandraConnector\nval cassandraConnector = CassandraConnector(sparkConf) ","outputs":[{"name":"stdout","output_type":"stream","text":"java.lang.NoClassDefFoundError: org/apache/spark/Logging\n  at java.lang.ClassLoader.defineClass1(Native Method)\n  at java.lang.ClassLoader.defineClass(ClassLoader.java:803)\n  at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:142)\n  at java.net.URLClassLoader.defineClass(URLClassLoader.java:449)\n  at java.net.URLClassLoader.access$100(URLClassLoader.java:71)\n  at java.net.URLClassLoader$1.run(URLClassLoader.java:361)\n  at java.net.URLClassLoader$1.run(URLClassLoader.java:355)\n  at java.security.AccessController.doPrivileged(Native Method)\n  at java.net.URLClassLoader.findClass(URLClassLoader.java:354)\n  at java.lang.ClassLoader.loadClass(ClassLoader.java:425)\n  at java.lang.ClassLoader.loadClass(ClassLoader.java:412)\n  at java.lang.ClassLoader.loadClass(ClassLoader.java:358)\n  at java.lang.Class.getDeclaredMethods0(Native Method)\n  at java.lang.Class.privateGetDeclaredMethods(Class.java:2625)\n  at java.lang.Class.privateGetPublicMethods(Class.java:2743)\n  at java.lang.Class.getMethods(Class.java:1480)\n  at scala.tools.nsc.interpreter.IMain$ReadEvalPrint.evalMethod(IMain.scala:848)\n  at scala.tools.nsc.interpreter.IMain$ReadEvalPrint.call(IMain.scala:781)\n  at scala.tools.nsc.interpreter.IMain$Request.loadAndRun(IMain.scala:1047)\n  at scala.tools.nsc.interpreter.IMain$WrappedRequest$$anonfun$loadAndRunReq$1.apply(IMain.scala:638)\n  at scala.tools.nsc.interpreter.IMain$WrappedRequest$$anonfun$loadAndRunReq$1.apply(IMain.scala:637)\n  at scala.reflect.internal.util.ScalaClassLoader$class.asContext(ScalaClassLoader.scala:31)\n  at scala.reflect.internal.util.AbstractFileClassLoader.asContext(AbstractFileClassLoader.scala:19)\n  at scala.tools.nsc.interpreter.IMain$WrappedRequest.loadAndRunReq(IMain.scala:637)\n  at scala.tools.nsc.interpreter.IMain.interpret(IMain.scala:569)\n  at scala.tools.nsc.interpreter.IMain.interpret(IMain.scala:565)\n  at notebook.kernel.Repl$$anonfun$7.apply(Repl.scala:208)\n  at notebook.kernel.Repl$$anonfun$7.apply(Repl.scala:208)\n  at scala.util.DynamicVariable.withValue(DynamicVariable.scala:58)\n  at scala.Console$.withOut(Console.scala:65)\n  at notebook.kernel.Repl.evaluate(Repl.scala:207)\n  at notebook.client.ReplCalculator$$anonfun$13$$anon$1$$anonfun$30.replEvaluate$1(ReplCalculator.scala:403)\n  at notebook.client.ReplCalculator$$anonfun$13$$anon$1$$anonfun$30.apply(ReplCalculator.scala:416)\n  at notebook.client.ReplCalculator$$anonfun$13$$anon$1$$anonfun$30.apply(ReplCalculator.scala:397)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)\n  at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)\n  at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:40)\n  at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:397)\n  at scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)\n  at scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)\n  at scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)\n  at scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)\nCaused by: java.lang.ClassNotFoundException: org.apache.spark.Logging\n  at java.net.URLClassLoader$1.run(URLClassLoader.java:366)\n  at java.net.URLClassLoader$1.run(URLClassLoader.java:355)\n  at java.security.AccessController.doPrivileged(Native Method)\n  at java.net.URLClassLoader.findClass(URLClassLoader.java:354)\n  at java.lang.ClassLoader.loadClass(ClassLoader.java:425)\n  at java.lang.ClassLoader.loadClass(ClassLoader.java:358)\n  ... 42 more\n"}]},{"metadata":{"id":"770A6C7752344F7B87E8DEF038D5B755"},"cell_type":"markdown","source":"###Using the connector, execute the create statements"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"E186591B463043D98ED54F401D64CA1B"},"cell_type":"code","source":"cassandraConnector.withSessionDo { session =>\n  session.execute(createKeyspace)\n  session.execute(createTable)\n}","outputs":[]},{"metadata":{"id":"731174BCA4B64DEC9AA781DE9DDEA218"},"cell_type":"markdown","source":"###Insert some sample data"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"0FCDF788D0E541F58CACAE4B4690FC31"},"cell_type":"code","source":"CassandraConnector(sparkConf).withSessionDo { session =>\n  for (i <- 0 until 100) {\n    val insertStatement = s\"INSERT INTO test.kv(key, value) VALUES ('key${i}', $i);\"\n    session.execute(insertStatement)\n  }\n}","outputs":[]},{"metadata":{"id":"76061AEBCEAF4B87846BC784352D1790"},"cell_type":"markdown","source":"##Enable Cassandra-specific functions on the SparkContext and RDD:"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"ADAB055980FF409F8B408F87DD0C590C"},"cell_type":"code","source":"import com.datastax.spark.connector._","outputs":[]},{"metadata":{"id":"328EA71AFC4B49DE83102DA79DF60A92"},"cell_type":"markdown","source":"#Loading and analyzing data from Cassandra\nUse the `sc.cassandraTable` method to view this table as a Spark `RDD`:\n_This method will issue a full table load into Spark_"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"8D5FD9FCA1A742EB83DC27915B11ADD9"},"cell_type":"code","source":"val rdd = sc.cassandraTable(\"test\", \"kv\")","outputs":[]},{"metadata":{"id":"1AE794A737304F7AB6F4E4074A3B11F8"},"cell_type":"markdown","source":"###We can explore the data with Spark \n- count all elements"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"440FCC30559B4BDEA41E405B678D8CB1"},"cell_type":"code","source":"rdd.count","outputs":[]},{"metadata":{"id":"CD09307E72C24393B277A0CB25FF5FA3"},"cell_type":"markdown","source":"- get the first element"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"E995ABE17AD548558EE2FA159D5B5271"},"cell_type":"code","source":"rdd.first","outputs":[]},{"metadata":{"id":"F9A7F225AF5F4ADA819BC1A0C2BFAA7E"},"cell_type":"markdown","source":"- sum all the values"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"909A96111A814D3483D34C59B77F6C6E"},"cell_type":"code","source":"rdd.map(_.getInt(\"value\")).sum","outputs":[]},{"metadata":{"id":"8F94FCDEE6194C669376AC2A68085887"},"cell_type":"markdown","source":"- visualize the data"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"B7F5F1AFDACE48CE9136F99B92EDF0A2"},"cell_type":"code","source":"rdd.map(row =>  row.getInt(\"value\")).take(100)","outputs":[]},{"metadata":{"id":"A4D0A838557F4881AB168C70E3D4C841"},"cell_type":"markdown","source":"#Add Data from Spark to Cassandra\n###Create a new collection of data"},{"metadata":{"trusted":true,"input_collapsed":false,"output_stream_collapsed":true,"collapsed":true,"id":"90D3F3C39D3948E7A387CBAFE82D1B7B"},"cell_type":"code","source":"val moreData = for (i <- 100 until 200) yield ((s\"addedKey$i\"),i) ","outputs":[]},{"metadata":{"id":"DD83C3AF43694E2482AB3E5D0EC6EA5F"},"cell_type":"markdown","source":"###Convert the collection into an RDD, \"parallelizing\" it"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"9823DA24F13A4A398C555CD652C883F7"},"cell_type":"code","source":"val moreDataRdd = sparkContext.parallelize(moreData) ","outputs":[]},{"metadata":{"id":"0DA9ACAAF33745139C4DE3099BA4F933"},"cell_type":"markdown","source":"### Store in Cassandra using the implicit methods on RDD"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"E15F53BD3E094AA2A20DAD31C16D5CB8"},"cell_type":"code","source":"moreDataRdd.saveToCassandra(\"test\",\"kv\")","outputs":[]},{"metadata":{"id":"553976BF10374CEA81903C17E1797FC7"},"cell_type":"markdown","source":"### Verify that the added data is there\n_Note that we don't need to re-declare the RDD. An action, such as `count` will trigger a re-computation of the RDD and therefore the new data will be taken into account_"},{"metadata":{"trusted":true,"input_collapsed":false,"collapsed":true,"id":"20E25EEEAEE1493E99C3F13F564ED04B"},"cell_type":"code","source":"rdd.count","outputs":[]}],"nbformat":4}
+{
+	"metadata": {
+		"name": "Getting Started with Spark and Cassandra",
+		"user_save_timestamp": "1970-01-01T01:00:00.000Z",
+		"auto_save_timestamp": "1970-01-01T01:00:00.000Z",
+		"language_info": {
+			"name": "scala",
+			"file_extension": "scala",
+			"codemirror_mode": "text/x-scala"
+		},
+		"trusted": true,
+		"customLocalRepo": "/tmp/repo",
+		"customRepos": null,
+		"customDeps": ["com.datastax.spark % spark-cassandra-connector_2.11 % 2.0.0-M3"],
+		"customImports": null,
+		"customArgs": null,
+		"customSparkConf": {
+			"spark.cassandra.connection.host": "651f57a28c4c"
+		}
+	},
+	"cells": [{
+		"metadata": {
+			"id": "B27ADAF4F2D14D22BF003C4BE71AE9CF"
+		},
+		"cell_type": "markdown",
+		"source": "#Getting Started with Spark and Cassandra"
+	}, {
+		"metadata": {
+			"id": "8F429C2988A746F9858E1CE9C4D029E2"
+		},
+		"cell_type": "markdown",
+		"source": "##This notebook shows you how to get Spark and Cassandra working together. \nTo try this notebook you will need an existing Cassandra instance, either a local server or a cluster.\nWe require the ip address of one seed node from that Cassandra single server or cluster.\n\n_This notebook is an adaptation of the [Quick Stark Guide](https://github.com/datastax/spark-cassandra-connector/blob/master/doc/0_quick_start.md) from the [Spark Cassandra Connector Repository](https://github.com/datastax/spark-cassandra-connector)_"
+	}, {
+		"metadata": {
+			"id": "90D4C542F8224C14AE7446A5EB6CF240"
+		},
+		"cell_type": "markdown",
+		"source": "##Create a keyspace and a table for our test"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "FAE34CA22AF44F809895EFD8E0E16FF7"
+		},
+		"cell_type": "code",
+		"source": "val createKeyspace = \"CREATE KEYSPACE IF NOT EXISTS test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };\" \nval createTable = \"CREATE TABLE IF NOT EXISTS test.kv(key text PRIMARY KEY, value int);\"",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "createKeyspace: String = CREATE KEYSPACE IF NOT EXISTS test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };\ncreateTable: String = CREATE TABLE IF NOT EXISTS test.kv(key text PRIMARY KEY, value int);\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 1,
+			"time": "Took: 1 second 509 milliseconds, at 2017-1-2 5:1"
+		}]
+	}, {
+		"metadata": {
+			"id": "2B0308FEFC1A49338A2AECF718B499A7"
+		},
+		"cell_type": "markdown",
+		"source": "_We are going to use the Cassandra connector in \"manual\" mode to execute those statements_\nFor that, we first need the Spark Conf object that now contains all information we need to connect to Cassandra"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "EF7906B66C2B4BCA82F4DE38121CA926"
+		},
+		"cell_type": "code",
+		"source": "val sparkConf = sparkContext.getConf",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "sparkConf: org.apache.spark.SparkConf = org.apache.spark.SparkConf@4413080f\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 2,
+			"time": "Took: 1 second 175 milliseconds, at 2017-1-2 5:1"
+		}]
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "908F81AB26D84C7D84861DA7A649E7D5"
+		},
+		"cell_type": "code",
+		"source": "import com.datastax.spark.connector.cql.CassandraConnector\nval cassandraConnector = CassandraConnector(sparkConf) ",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "import com.datastax.spark.connector.cql.CassandraConnector\ncassandraConnector: com.datastax.spark.connector.cql.CassandraConnector = com.datastax.spark.connector.cql.CassandraConnector@4e2749ae\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 3,
+			"time": "Took: 1 second 622 milliseconds, at 2017-1-2 5:1"
+		}]
+	}, {
+		"metadata": {
+			"id": "770A6C7752344F7B87E8DEF038D5B755"
+		},
+		"cell_type": "markdown",
+		"source": "###Using the connector, execute the create statements"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "E186591B463043D98ED54F401D64CA1B"
+		},
+		"cell_type": "code",
+		"source": "cassandraConnector.withSessionDo { session =>\n  session.execute(createKeyspace)\n  session.execute(createTable)\n}",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "res4: com.datastax.driver.core.ResultSet = ResultSet[ exhausted: true, Columns[]]\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": "ResultSet[ exhausted: true, Columns[]]"
+			},
+			"output_type": "execute_result",
+			"execution_count": 4,
+			"time": "Took: 1 second 808 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "731174BCA4B64DEC9AA781DE9DDEA218"
+		},
+		"cell_type": "markdown",
+		"source": "###Insert some sample data"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "0FCDF788D0E541F58CACAE4B4690FC31"
+		},
+		"cell_type": "code",
+		"source": "CassandraConnector(sparkConf).withSessionDo { session =>\n  for (i <- 0 until 100) {\n    val insertStatement = s\"INSERT INTO test.kv(key, value) VALUES ('key${i}', $i);\"\n    session.execute(insertStatement)\n  }\n}",
+		"outputs": [{
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 5,
+			"time": "Took: 1 second 558 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "76061AEBCEAF4B87846BC784352D1790"
+		},
+		"cell_type": "markdown",
+		"source": "##Enable Cassandra-specific functions on the SparkContext and RDD:"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "ADAB055980FF409F8B408F87DD0C590C"
+		},
+		"cell_type": "code",
+		"source": "import com.datastax.spark.connector._",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "import com.datastax.spark.connector._\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 6,
+			"time": "Took: 800 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "328EA71AFC4B49DE83102DA79DF60A92"
+		},
+		"cell_type": "markdown",
+		"source": "#Loading and analyzing data from Cassandra\nUse the `sc.cassandraTable` method to view this table as a Spark `RDD`:\n_This method will issue a full table load into Spark_"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "8D5FD9FCA1A742EB83DC27915B11ADD9"
+		},
+		"cell_type": "code",
+		"source": "val rdd = sc.cassandraTable(\"test\", \"kv\")",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "rdd: com.datastax.spark.connector.rdd.CassandraTableScanRDD[com.datastax.spark.connector.CassandraRow] = CassandraTableScanRDD[0] at RDD at CassandraRDD.scala:18\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 7,
+			"time": "Took: 1 second 48 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "1AE794A737304F7AB6F4E4074A3B11F8"
+		},
+		"cell_type": "markdown",
+		"source": "###We can explore the data with Spark \n- count all elements"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "440FCC30559B4BDEA41E405B678D8CB1"
+		},
+		"cell_type": "code",
+		"source": "rdd.count",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "res10: Long = 100\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": "100"
+			},
+			"output_type": "execute_result",
+			"execution_count": 8,
+			"time": "Took: 2 seconds 644 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "CD09307E72C24393B277A0CB25FF5FA3"
+		},
+		"cell_type": "markdown",
+		"source": "- get the first element"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "E995ABE17AD548558EE2FA159D5B5271"
+		},
+		"cell_type": "code",
+		"source": "rdd.first",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "res12: com.datastax.spark.connector.CassandraRow = CassandraRow{key: key1, value: 1}\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": "CassandraRow{key: key1, value: 1}"
+			},
+			"output_type": "execute_result",
+			"execution_count": 9,
+			"time": "Took: 1 second 168 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "F9A7F225AF5F4ADA819BC1A0C2BFAA7E"
+		},
+		"cell_type": "markdown",
+		"source": "- sum all the values"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "909A96111A814D3483D34C59B77F6C6E"
+		},
+		"cell_type": "code",
+		"source": "rdd.map(_.getInt(\"value\")).sum",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "res14: Double = 4950.0\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": "4950.0"
+			},
+			"output_type": "execute_result",
+			"execution_count": 10,
+			"time": "Took: 1 second 462 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "8F94FCDEE6194C669376AC2A68085887"
+		},
+		"cell_type": "markdown",
+		"source": "- visualize the data"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"presentation": {
+				"tabs_state": "{\n  \"tab_id\": \"#tab1746084244-0\"\n}",
+				"pivot_chart_state": "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+			},
+			"id": "B7F5F1AFDACE48CE9136F99B92EDF0A2"
+		},
+		"cell_type": "code",
+		"source": "rdd.map(row =>  row.getInt(\"value\")).take(100)",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "res16: Array[Int] = Array(1, 9, 52, 94, 19, 42, 61, 6, 48, 55, 46, 39, 44, 12, 97, 95, 31, 99, 45, 51, 34, 62, 79, 18, 40, 78, 72, 92, 25, 5, 66, 54, 96, 68, 82, 58, 4, 8, 63, 70, 27, 73, 30, 32, 84, 80, 56, 23, 53, 43, 98, 37, 87, 17, 91, 81, 35, 89, 29, 10, 67, 28, 24, 64, 11, 26, 41, 74, 49, 2, 50, 38, 21, 76, 33, 83, 88, 93, 77, 22, 0, 14, 16, 57, 85, 20, 90, 47, 13, 71, 60, 69, 86, 65, 36, 3, 7, 15, 59, 75)\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": "<div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonadcf80f556120fd87358f7f26ee7abc1&quot;,&quot;dataInit&quot;:[],&quot;genId&quot;:&quot;1746084244&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tabs'], \n      function(playground, _magictabs) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictabs,\n    \"o\": {}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <div>\n        <ul class=\"nav nav-tabs\" id=\"ul1746084244\"><li>\n              <a href=\"#tab1746084244-0\"><i class=\"fa fa-table\"/></a>\n            </li><li>\n              <a href=\"#tab1746084244-1\"><i class=\"fa fa-dot-circle-o\"/></a>\n            </li><li>\n              <a href=\"#tab1746084244-2\"><i class=\"fa fa-line-chart\"/></a>\n            </li><li>\n              <a href=\"#tab1746084244-3\"><i class=\"fa fa-bar-chart\"/></a>\n            </li><li>\n              <a href=\"#tab1746084244-4\"><i class=\"fa fa-cubes\"/></a>\n            </li></ul>\n\n        <div class=\"tab-content\" id=\"tab1746084244\"><div class=\"tab-pane\" id=\"tab1746084244-0\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonfa917fe431cce492203b92175dcf47d0&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:0,&quot;_2&quot;:1},{&quot;_1&quot;:1,&quot;_2&quot;:9},{&quot;_1&quot;:2,&quot;_2&quot;:52},{&quot;_1&quot;:3,&quot;_2&quot;:94},{&quot;_1&quot;:4,&quot;_2&quot;:19},{&quot;_1&quot;:5,&quot;_2&quot;:42},{&quot;_1&quot;:6,&quot;_2&quot;:61},{&quot;_1&quot;:7,&quot;_2&quot;:6},{&quot;_1&quot;:8,&quot;_2&quot;:48},{&quot;_1&quot;:9,&quot;_2&quot;:55},{&quot;_1&quot;:10,&quot;_2&quot;:46},{&quot;_1&quot;:11,&quot;_2&quot;:39},{&quot;_1&quot;:12,&quot;_2&quot;:44},{&quot;_1&quot;:13,&quot;_2&quot;:12},{&quot;_1&quot;:14,&quot;_2&quot;:97},{&quot;_1&quot;:15,&quot;_2&quot;:95},{&quot;_1&quot;:16,&quot;_2&quot;:31},{&quot;_1&quot;:17,&quot;_2&quot;:99},{&quot;_1&quot;:18,&quot;_2&quot;:45},{&quot;_1&quot;:19,&quot;_2&quot;:51},{&quot;_1&quot;:20,&quot;_2&quot;:34},{&quot;_1&quot;:21,&quot;_2&quot;:62},{&quot;_1&quot;:22,&quot;_2&quot;:79},{&quot;_1&quot;:23,&quot;_2&quot;:18},{&quot;_1&quot;:24,&quot;_2&quot;:40},{&quot;_1&quot;:25,&quot;_2&quot;:78},{&quot;_1&quot;:26,&quot;_2&quot;:72},{&quot;_1&quot;:27,&quot;_2&quot;:92},{&quot;_1&quot;:28,&quot;_2&quot;:25},{&quot;_1&quot;:29,&quot;_2&quot;:5},{&quot;_1&quot;:30,&quot;_2&quot;:66},{&quot;_1&quot;:31,&quot;_2&quot;:54},{&quot;_1&quot;:32,&quot;_2&quot;:96},{&quot;_1&quot;:33,&quot;_2&quot;:68},{&quot;_1&quot;:34,&quot;_2&quot;:82},{&quot;_1&quot;:35,&quot;_2&quot;:58},{&quot;_1&quot;:36,&quot;_2&quot;:4},{&quot;_1&quot;:37,&quot;_2&quot;:8},{&quot;_1&quot;:38,&quot;_2&quot;:63},{&quot;_1&quot;:39,&quot;_2&quot;:70},{&quot;_1&quot;:40,&quot;_2&quot;:27},{&quot;_1&quot;:41,&quot;_2&quot;:73},{&quot;_1&quot;:42,&quot;_2&quot;:30},{&quot;_1&quot;:43,&quot;_2&quot;:32},{&quot;_1&quot;:44,&quot;_2&quot;:84},{&quot;_1&quot;:45,&quot;_2&quot;:80},{&quot;_1&quot;:46,&quot;_2&quot;:56},{&quot;_1&quot;:47,&quot;_2&quot;:23},{&quot;_1&quot;:48,&quot;_2&quot;:53},{&quot;_1&quot;:49,&quot;_2&quot;:43},{&quot;_1&quot;:50,&quot;_2&quot;:98},{&quot;_1&quot;:51,&quot;_2&quot;:37},{&quot;_1&quot;:52,&quot;_2&quot;:87},{&quot;_1&quot;:53,&quot;_2&quot;:17},{&quot;_1&quot;:54,&quot;_2&quot;:91},{&quot;_1&quot;:55,&quot;_2&quot;:81},{&quot;_1&quot;:56,&quot;_2&quot;:35},{&quot;_1&quot;:57,&quot;_2&quot;:89},{&quot;_1&quot;:58,&quot;_2&quot;:29},{&quot;_1&quot;:59,&quot;_2&quot;:10},{&quot;_1&quot;:60,&quot;_2&quot;:67},{&quot;_1&quot;:61,&quot;_2&quot;:28},{&quot;_1&quot;:62,&quot;_2&quot;:24},{&quot;_1&quot;:63,&quot;_2&quot;:64},{&quot;_1&quot;:64,&quot;_2&quot;:11},{&quot;_1&quot;:65,&quot;_2&quot;:26},{&quot;_1&quot;:66,&quot;_2&quot;:41},{&quot;_1&quot;:67,&quot;_2&quot;:74},{&quot;_1&quot;:68,&quot;_2&quot;:49},{&quot;_1&quot;:69,&quot;_2&quot;:2},{&quot;_1&quot;:70,&quot;_2&quot;:50},{&quot;_1&quot;:71,&quot;_2&quot;:38},{&quot;_1&quot;:72,&quot;_2&quot;:21},{&quot;_1&quot;:73,&quot;_2&quot;:76},{&quot;_1&quot;:74,&quot;_2&quot;:33},{&quot;_1&quot;:75,&quot;_2&quot;:83},{&quot;_1&quot;:76,&quot;_2&quot;:88},{&quot;_1&quot;:77,&quot;_2&quot;:93},{&quot;_1&quot;:78,&quot;_2&quot;:77},{&quot;_1&quot;:79,&quot;_2&quot;:22},{&quot;_1&quot;:80,&quot;_2&quot;:0},{&quot;_1&quot;:81,&quot;_2&quot;:14},{&quot;_1&quot;:82,&quot;_2&quot;:16},{&quot;_1&quot;:83,&quot;_2&quot;:57},{&quot;_1&quot;:84,&quot;_2&quot;:85},{&quot;_1&quot;:85,&quot;_2&quot;:20},{&quot;_1&quot;:86,&quot;_2&quot;:90},{&quot;_1&quot;:87,&quot;_2&quot;:47},{&quot;_1&quot;:88,&quot;_2&quot;:13},{&quot;_1&quot;:89,&quot;_2&quot;:71},{&quot;_1&quot;:90,&quot;_2&quot;:60},{&quot;_1&quot;:91,&quot;_2&quot;:69},{&quot;_1&quot;:92,&quot;_2&quot;:86},{&quot;_1&quot;:93,&quot;_2&quot;:65},{&quot;_1&quot;:94,&quot;_2&quot;:36},{&quot;_1&quot;:95,&quot;_2&quot;:3},{&quot;_1&quot;:96,&quot;_2&quot;:7},{&quot;_1&quot;:97,&quot;_2&quot;:15},{&quot;_1&quot;:98,&quot;_2&quot;:59},{&quot;_1&quot;:99,&quot;_2&quot;:75}],&quot;genId&quot;:&quot;227789126&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tableChart'], \n      function(playground, _magictableChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictableChart,\n    \"o\": {\"headers\":[\"_1\",\"_2\"],\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anonf9838ae16505356fcfada297000d2bb7&quot;,&quot;initialValue&quot;:&quot;100&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon2ca651560c9332248136057fe615c721&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div><div class=\"tab-pane\" id=\"tab1746084244-1\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonf34560be661ca538864437001457995e&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:0,&quot;_2&quot;:1},{&quot;_1&quot;:1,&quot;_2&quot;:9},{&quot;_1&quot;:2,&quot;_2&quot;:52},{&quot;_1&quot;:3,&quot;_2&quot;:94},{&quot;_1&quot;:4,&quot;_2&quot;:19},{&quot;_1&quot;:5,&quot;_2&quot;:42},{&quot;_1&quot;:6,&quot;_2&quot;:61},{&quot;_1&quot;:7,&quot;_2&quot;:6},{&quot;_1&quot;:8,&quot;_2&quot;:48},{&quot;_1&quot;:9,&quot;_2&quot;:55},{&quot;_1&quot;:10,&quot;_2&quot;:46},{&quot;_1&quot;:11,&quot;_2&quot;:39},{&quot;_1&quot;:12,&quot;_2&quot;:44},{&quot;_1&quot;:13,&quot;_2&quot;:12},{&quot;_1&quot;:14,&quot;_2&quot;:97},{&quot;_1&quot;:15,&quot;_2&quot;:95},{&quot;_1&quot;:16,&quot;_2&quot;:31},{&quot;_1&quot;:17,&quot;_2&quot;:99},{&quot;_1&quot;:18,&quot;_2&quot;:45},{&quot;_1&quot;:19,&quot;_2&quot;:51},{&quot;_1&quot;:20,&quot;_2&quot;:34},{&quot;_1&quot;:21,&quot;_2&quot;:62},{&quot;_1&quot;:22,&quot;_2&quot;:79},{&quot;_1&quot;:23,&quot;_2&quot;:18},{&quot;_1&quot;:24,&quot;_2&quot;:40},{&quot;_1&quot;:25,&quot;_2&quot;:78},{&quot;_1&quot;:26,&quot;_2&quot;:72},{&quot;_1&quot;:27,&quot;_2&quot;:92},{&quot;_1&quot;:28,&quot;_2&quot;:25},{&quot;_1&quot;:29,&quot;_2&quot;:5},{&quot;_1&quot;:30,&quot;_2&quot;:66},{&quot;_1&quot;:31,&quot;_2&quot;:54},{&quot;_1&quot;:32,&quot;_2&quot;:96},{&quot;_1&quot;:33,&quot;_2&quot;:68},{&quot;_1&quot;:34,&quot;_2&quot;:82},{&quot;_1&quot;:35,&quot;_2&quot;:58},{&quot;_1&quot;:36,&quot;_2&quot;:4},{&quot;_1&quot;:37,&quot;_2&quot;:8},{&quot;_1&quot;:38,&quot;_2&quot;:63},{&quot;_1&quot;:39,&quot;_2&quot;:70},{&quot;_1&quot;:40,&quot;_2&quot;:27},{&quot;_1&quot;:41,&quot;_2&quot;:73},{&quot;_1&quot;:42,&quot;_2&quot;:30},{&quot;_1&quot;:43,&quot;_2&quot;:32},{&quot;_1&quot;:44,&quot;_2&quot;:84},{&quot;_1&quot;:45,&quot;_2&quot;:80},{&quot;_1&quot;:46,&quot;_2&quot;:56},{&quot;_1&quot;:47,&quot;_2&quot;:23},{&quot;_1&quot;:48,&quot;_2&quot;:53},{&quot;_1&quot;:49,&quot;_2&quot;:43},{&quot;_1&quot;:50,&quot;_2&quot;:98},{&quot;_1&quot;:51,&quot;_2&quot;:37},{&quot;_1&quot;:52,&quot;_2&quot;:87},{&quot;_1&quot;:53,&quot;_2&quot;:17},{&quot;_1&quot;:54,&quot;_2&quot;:91},{&quot;_1&quot;:55,&quot;_2&quot;:81},{&quot;_1&quot;:56,&quot;_2&quot;:35},{&quot;_1&quot;:57,&quot;_2&quot;:89},{&quot;_1&quot;:58,&quot;_2&quot;:29},{&quot;_1&quot;:59,&quot;_2&quot;:10},{&quot;_1&quot;:60,&quot;_2&quot;:67},{&quot;_1&quot;:61,&quot;_2&quot;:28},{&quot;_1&quot;:62,&quot;_2&quot;:24},{&quot;_1&quot;:63,&quot;_2&quot;:64},{&quot;_1&quot;:64,&quot;_2&quot;:11},{&quot;_1&quot;:65,&quot;_2&quot;:26},{&quot;_1&quot;:66,&quot;_2&quot;:41},{&quot;_1&quot;:67,&quot;_2&quot;:74},{&quot;_1&quot;:68,&quot;_2&quot;:49},{&quot;_1&quot;:69,&quot;_2&quot;:2},{&quot;_1&quot;:70,&quot;_2&quot;:50},{&quot;_1&quot;:71,&quot;_2&quot;:38},{&quot;_1&quot;:72,&quot;_2&quot;:21},{&quot;_1&quot;:73,&quot;_2&quot;:76},{&quot;_1&quot;:74,&quot;_2&quot;:33},{&quot;_1&quot;:75,&quot;_2&quot;:83},{&quot;_1&quot;:76,&quot;_2&quot;:88},{&quot;_1&quot;:77,&quot;_2&quot;:93},{&quot;_1&quot;:78,&quot;_2&quot;:77},{&quot;_1&quot;:79,&quot;_2&quot;:22},{&quot;_1&quot;:80,&quot;_2&quot;:0},{&quot;_1&quot;:81,&quot;_2&quot;:14},{&quot;_1&quot;:82,&quot;_2&quot;:16},{&quot;_1&quot;:83,&quot;_2&quot;:57},{&quot;_1&quot;:84,&quot;_2&quot;:85},{&quot;_1&quot;:85,&quot;_2&quot;:20},{&quot;_1&quot;:86,&quot;_2&quot;:90},{&quot;_1&quot;:87,&quot;_2&quot;:47},{&quot;_1&quot;:88,&quot;_2&quot;:13},{&quot;_1&quot;:89,&quot;_2&quot;:71},{&quot;_1&quot;:90,&quot;_2&quot;:60},{&quot;_1&quot;:91,&quot;_2&quot;:69},{&quot;_1&quot;:92,&quot;_2&quot;:86},{&quot;_1&quot;:93,&quot;_2&quot;:65},{&quot;_1&quot;:94,&quot;_2&quot;:36},{&quot;_1&quot;:95,&quot;_2&quot;:3},{&quot;_1&quot;:96,&quot;_2&quot;:7},{&quot;_1&quot;:97,&quot;_2&quot;:15},{&quot;_1&quot;:98,&quot;_2&quot;:59},{&quot;_1&quot;:99,&quot;_2&quot;:75}],&quot;genId&quot;:&quot;103812692&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/scatterChart'], \n      function(playground, _magicscatterChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magicscatterChart,\n    \"o\": {\"x\":\"_1\",\"y\":\"_2\",\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon391013a4c9cae6ee07d9ae831e88e937&quot;,&quot;initialValue&quot;:&quot;100&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anonf333bcb5b72c7a4efb4613da4de73870&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div><div class=\"tab-pane\" id=\"tab1746084244-2\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon2c8a7c05b1fa0af7eeaa5ba1647319d0&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:0,&quot;_2&quot;:1},{&quot;_1&quot;:1,&quot;_2&quot;:9},{&quot;_1&quot;:2,&quot;_2&quot;:52},{&quot;_1&quot;:3,&quot;_2&quot;:94},{&quot;_1&quot;:4,&quot;_2&quot;:19},{&quot;_1&quot;:5,&quot;_2&quot;:42},{&quot;_1&quot;:6,&quot;_2&quot;:61},{&quot;_1&quot;:7,&quot;_2&quot;:6},{&quot;_1&quot;:8,&quot;_2&quot;:48},{&quot;_1&quot;:9,&quot;_2&quot;:55},{&quot;_1&quot;:10,&quot;_2&quot;:46},{&quot;_1&quot;:11,&quot;_2&quot;:39},{&quot;_1&quot;:12,&quot;_2&quot;:44},{&quot;_1&quot;:13,&quot;_2&quot;:12},{&quot;_1&quot;:14,&quot;_2&quot;:97},{&quot;_1&quot;:15,&quot;_2&quot;:95},{&quot;_1&quot;:16,&quot;_2&quot;:31},{&quot;_1&quot;:17,&quot;_2&quot;:99},{&quot;_1&quot;:18,&quot;_2&quot;:45},{&quot;_1&quot;:19,&quot;_2&quot;:51},{&quot;_1&quot;:20,&quot;_2&quot;:34},{&quot;_1&quot;:21,&quot;_2&quot;:62},{&quot;_1&quot;:22,&quot;_2&quot;:79},{&quot;_1&quot;:23,&quot;_2&quot;:18},{&quot;_1&quot;:24,&quot;_2&quot;:40},{&quot;_1&quot;:25,&quot;_2&quot;:78},{&quot;_1&quot;:26,&quot;_2&quot;:72},{&quot;_1&quot;:27,&quot;_2&quot;:92},{&quot;_1&quot;:28,&quot;_2&quot;:25},{&quot;_1&quot;:29,&quot;_2&quot;:5},{&quot;_1&quot;:30,&quot;_2&quot;:66},{&quot;_1&quot;:31,&quot;_2&quot;:54},{&quot;_1&quot;:32,&quot;_2&quot;:96},{&quot;_1&quot;:33,&quot;_2&quot;:68},{&quot;_1&quot;:34,&quot;_2&quot;:82},{&quot;_1&quot;:35,&quot;_2&quot;:58},{&quot;_1&quot;:36,&quot;_2&quot;:4},{&quot;_1&quot;:37,&quot;_2&quot;:8},{&quot;_1&quot;:38,&quot;_2&quot;:63},{&quot;_1&quot;:39,&quot;_2&quot;:70},{&quot;_1&quot;:40,&quot;_2&quot;:27},{&quot;_1&quot;:41,&quot;_2&quot;:73},{&quot;_1&quot;:42,&quot;_2&quot;:30},{&quot;_1&quot;:43,&quot;_2&quot;:32},{&quot;_1&quot;:44,&quot;_2&quot;:84},{&quot;_1&quot;:45,&quot;_2&quot;:80},{&quot;_1&quot;:46,&quot;_2&quot;:56},{&quot;_1&quot;:47,&quot;_2&quot;:23},{&quot;_1&quot;:48,&quot;_2&quot;:53},{&quot;_1&quot;:49,&quot;_2&quot;:43},{&quot;_1&quot;:50,&quot;_2&quot;:98},{&quot;_1&quot;:51,&quot;_2&quot;:37},{&quot;_1&quot;:52,&quot;_2&quot;:87},{&quot;_1&quot;:53,&quot;_2&quot;:17},{&quot;_1&quot;:54,&quot;_2&quot;:91},{&quot;_1&quot;:55,&quot;_2&quot;:81},{&quot;_1&quot;:56,&quot;_2&quot;:35},{&quot;_1&quot;:57,&quot;_2&quot;:89},{&quot;_1&quot;:58,&quot;_2&quot;:29},{&quot;_1&quot;:59,&quot;_2&quot;:10},{&quot;_1&quot;:60,&quot;_2&quot;:67},{&quot;_1&quot;:61,&quot;_2&quot;:28},{&quot;_1&quot;:62,&quot;_2&quot;:24},{&quot;_1&quot;:63,&quot;_2&quot;:64},{&quot;_1&quot;:64,&quot;_2&quot;:11},{&quot;_1&quot;:65,&quot;_2&quot;:26},{&quot;_1&quot;:66,&quot;_2&quot;:41},{&quot;_1&quot;:67,&quot;_2&quot;:74},{&quot;_1&quot;:68,&quot;_2&quot;:49},{&quot;_1&quot;:69,&quot;_2&quot;:2},{&quot;_1&quot;:70,&quot;_2&quot;:50},{&quot;_1&quot;:71,&quot;_2&quot;:38},{&quot;_1&quot;:72,&quot;_2&quot;:21},{&quot;_1&quot;:73,&quot;_2&quot;:76},{&quot;_1&quot;:74,&quot;_2&quot;:33},{&quot;_1&quot;:75,&quot;_2&quot;:83},{&quot;_1&quot;:76,&quot;_2&quot;:88},{&quot;_1&quot;:77,&quot;_2&quot;:93},{&quot;_1&quot;:78,&quot;_2&quot;:77},{&quot;_1&quot;:79,&quot;_2&quot;:22},{&quot;_1&quot;:80,&quot;_2&quot;:0},{&quot;_1&quot;:81,&quot;_2&quot;:14},{&quot;_1&quot;:82,&quot;_2&quot;:16},{&quot;_1&quot;:83,&quot;_2&quot;:57},{&quot;_1&quot;:84,&quot;_2&quot;:85},{&quot;_1&quot;:85,&quot;_2&quot;:20},{&quot;_1&quot;:86,&quot;_2&quot;:90},{&quot;_1&quot;:87,&quot;_2&quot;:47},{&quot;_1&quot;:88,&quot;_2&quot;:13},{&quot;_1&quot;:89,&quot;_2&quot;:71},{&quot;_1&quot;:90,&quot;_2&quot;:60},{&quot;_1&quot;:91,&quot;_2&quot;:69},{&quot;_1&quot;:92,&quot;_2&quot;:86},{&quot;_1&quot;:93,&quot;_2&quot;:65},{&quot;_1&quot;:94,&quot;_2&quot;:36},{&quot;_1&quot;:95,&quot;_2&quot;:3},{&quot;_1&quot;:96,&quot;_2&quot;:7},{&quot;_1&quot;:97,&quot;_2&quot;:15},{&quot;_1&quot;:98,&quot;_2&quot;:59},{&quot;_1&quot;:99,&quot;_2&quot;:75}],&quot;genId&quot;:&quot;991232021&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/lineChart'], \n      function(playground, _magiclineChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magiclineChart,\n    \"o\": {\"x\":\"_1\",\"y\":\"_2\",\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon4471029ba274c0464699b16bde46556b&quot;,&quot;initialValue&quot;:&quot;100&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon2ff5fce89b42e1e08269403c0c10f85c&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div><div class=\"tab-pane\" id=\"tab1746084244-3\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonb48b0e4b40e6f6a09e7f39a2c21fb33f&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:0,&quot;_2&quot;:1},{&quot;_1&quot;:1,&quot;_2&quot;:9},{&quot;_1&quot;:2,&quot;_2&quot;:52},{&quot;_1&quot;:3,&quot;_2&quot;:94},{&quot;_1&quot;:4,&quot;_2&quot;:19},{&quot;_1&quot;:5,&quot;_2&quot;:42},{&quot;_1&quot;:6,&quot;_2&quot;:61},{&quot;_1&quot;:7,&quot;_2&quot;:6},{&quot;_1&quot;:8,&quot;_2&quot;:48},{&quot;_1&quot;:9,&quot;_2&quot;:55},{&quot;_1&quot;:10,&quot;_2&quot;:46},{&quot;_1&quot;:11,&quot;_2&quot;:39},{&quot;_1&quot;:12,&quot;_2&quot;:44},{&quot;_1&quot;:13,&quot;_2&quot;:12},{&quot;_1&quot;:14,&quot;_2&quot;:97},{&quot;_1&quot;:15,&quot;_2&quot;:95},{&quot;_1&quot;:16,&quot;_2&quot;:31},{&quot;_1&quot;:17,&quot;_2&quot;:99},{&quot;_1&quot;:18,&quot;_2&quot;:45},{&quot;_1&quot;:19,&quot;_2&quot;:51},{&quot;_1&quot;:20,&quot;_2&quot;:34},{&quot;_1&quot;:21,&quot;_2&quot;:62},{&quot;_1&quot;:22,&quot;_2&quot;:79},{&quot;_1&quot;:23,&quot;_2&quot;:18},{&quot;_1&quot;:24,&quot;_2&quot;:40},{&quot;_1&quot;:25,&quot;_2&quot;:78},{&quot;_1&quot;:26,&quot;_2&quot;:72},{&quot;_1&quot;:27,&quot;_2&quot;:92},{&quot;_1&quot;:28,&quot;_2&quot;:25},{&quot;_1&quot;:29,&quot;_2&quot;:5},{&quot;_1&quot;:30,&quot;_2&quot;:66},{&quot;_1&quot;:31,&quot;_2&quot;:54},{&quot;_1&quot;:32,&quot;_2&quot;:96},{&quot;_1&quot;:33,&quot;_2&quot;:68},{&quot;_1&quot;:34,&quot;_2&quot;:82},{&quot;_1&quot;:35,&quot;_2&quot;:58},{&quot;_1&quot;:36,&quot;_2&quot;:4},{&quot;_1&quot;:37,&quot;_2&quot;:8},{&quot;_1&quot;:38,&quot;_2&quot;:63},{&quot;_1&quot;:39,&quot;_2&quot;:70},{&quot;_1&quot;:40,&quot;_2&quot;:27},{&quot;_1&quot;:41,&quot;_2&quot;:73},{&quot;_1&quot;:42,&quot;_2&quot;:30},{&quot;_1&quot;:43,&quot;_2&quot;:32},{&quot;_1&quot;:44,&quot;_2&quot;:84},{&quot;_1&quot;:45,&quot;_2&quot;:80},{&quot;_1&quot;:46,&quot;_2&quot;:56},{&quot;_1&quot;:47,&quot;_2&quot;:23},{&quot;_1&quot;:48,&quot;_2&quot;:53},{&quot;_1&quot;:49,&quot;_2&quot;:43},{&quot;_1&quot;:50,&quot;_2&quot;:98},{&quot;_1&quot;:51,&quot;_2&quot;:37},{&quot;_1&quot;:52,&quot;_2&quot;:87},{&quot;_1&quot;:53,&quot;_2&quot;:17},{&quot;_1&quot;:54,&quot;_2&quot;:91},{&quot;_1&quot;:55,&quot;_2&quot;:81},{&quot;_1&quot;:56,&quot;_2&quot;:35},{&quot;_1&quot;:57,&quot;_2&quot;:89},{&quot;_1&quot;:58,&quot;_2&quot;:29},{&quot;_1&quot;:59,&quot;_2&quot;:10},{&quot;_1&quot;:60,&quot;_2&quot;:67},{&quot;_1&quot;:61,&quot;_2&quot;:28},{&quot;_1&quot;:62,&quot;_2&quot;:24},{&quot;_1&quot;:63,&quot;_2&quot;:64},{&quot;_1&quot;:64,&quot;_2&quot;:11},{&quot;_1&quot;:65,&quot;_2&quot;:26},{&quot;_1&quot;:66,&quot;_2&quot;:41},{&quot;_1&quot;:67,&quot;_2&quot;:74},{&quot;_1&quot;:68,&quot;_2&quot;:49},{&quot;_1&quot;:69,&quot;_2&quot;:2},{&quot;_1&quot;:70,&quot;_2&quot;:50},{&quot;_1&quot;:71,&quot;_2&quot;:38},{&quot;_1&quot;:72,&quot;_2&quot;:21},{&quot;_1&quot;:73,&quot;_2&quot;:76},{&quot;_1&quot;:74,&quot;_2&quot;:33},{&quot;_1&quot;:75,&quot;_2&quot;:83},{&quot;_1&quot;:76,&quot;_2&quot;:88},{&quot;_1&quot;:77,&quot;_2&quot;:93},{&quot;_1&quot;:78,&quot;_2&quot;:77},{&quot;_1&quot;:79,&quot;_2&quot;:22},{&quot;_1&quot;:80,&quot;_2&quot;:0},{&quot;_1&quot;:81,&quot;_2&quot;:14},{&quot;_1&quot;:82,&quot;_2&quot;:16},{&quot;_1&quot;:83,&quot;_2&quot;:57},{&quot;_1&quot;:84,&quot;_2&quot;:85},{&quot;_1&quot;:85,&quot;_2&quot;:20},{&quot;_1&quot;:86,&quot;_2&quot;:90},{&quot;_1&quot;:87,&quot;_2&quot;:47},{&quot;_1&quot;:88,&quot;_2&quot;:13},{&quot;_1&quot;:89,&quot;_2&quot;:71},{&quot;_1&quot;:90,&quot;_2&quot;:60},{&quot;_1&quot;:91,&quot;_2&quot;:69},{&quot;_1&quot;:92,&quot;_2&quot;:86},{&quot;_1&quot;:93,&quot;_2&quot;:65},{&quot;_1&quot;:94,&quot;_2&quot;:36},{&quot;_1&quot;:95,&quot;_2&quot;:3},{&quot;_1&quot;:96,&quot;_2&quot;:7},{&quot;_1&quot;:97,&quot;_2&quot;:15},{&quot;_1&quot;:98,&quot;_2&quot;:59},{&quot;_1&quot;:99,&quot;_2&quot;:75}],&quot;genId&quot;:&quot;779201009&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/barChart'], \n      function(playground, _magicbarChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magicbarChart,\n    \"o\": {\"x\":\"_1\",\"y\":\"_2\",\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anonfa15a798dad32d911717b45b81eab4c7&quot;,&quot;initialValue&quot;:&quot;100&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon78b9967301f9b77d1f2b27902cb3cc77&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div><div class=\"tab-pane\" id=\"tab1746084244-4\">\n            <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon71d9b429c7c109998e62d7bf5580cae7&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:0,&quot;_2&quot;:1},{&quot;_1&quot;:1,&quot;_2&quot;:9},{&quot;_1&quot;:2,&quot;_2&quot;:52},{&quot;_1&quot;:3,&quot;_2&quot;:94},{&quot;_1&quot;:4,&quot;_2&quot;:19},{&quot;_1&quot;:5,&quot;_2&quot;:42},{&quot;_1&quot;:6,&quot;_2&quot;:61},{&quot;_1&quot;:7,&quot;_2&quot;:6},{&quot;_1&quot;:8,&quot;_2&quot;:48},{&quot;_1&quot;:9,&quot;_2&quot;:55},{&quot;_1&quot;:10,&quot;_2&quot;:46},{&quot;_1&quot;:11,&quot;_2&quot;:39},{&quot;_1&quot;:12,&quot;_2&quot;:44},{&quot;_1&quot;:13,&quot;_2&quot;:12},{&quot;_1&quot;:14,&quot;_2&quot;:97},{&quot;_1&quot;:15,&quot;_2&quot;:95},{&quot;_1&quot;:16,&quot;_2&quot;:31},{&quot;_1&quot;:17,&quot;_2&quot;:99},{&quot;_1&quot;:18,&quot;_2&quot;:45},{&quot;_1&quot;:19,&quot;_2&quot;:51},{&quot;_1&quot;:20,&quot;_2&quot;:34},{&quot;_1&quot;:21,&quot;_2&quot;:62},{&quot;_1&quot;:22,&quot;_2&quot;:79},{&quot;_1&quot;:23,&quot;_2&quot;:18},{&quot;_1&quot;:24,&quot;_2&quot;:40},{&quot;_1&quot;:25,&quot;_2&quot;:78},{&quot;_1&quot;:26,&quot;_2&quot;:72},{&quot;_1&quot;:27,&quot;_2&quot;:92},{&quot;_1&quot;:28,&quot;_2&quot;:25},{&quot;_1&quot;:29,&quot;_2&quot;:5},{&quot;_1&quot;:30,&quot;_2&quot;:66},{&quot;_1&quot;:31,&quot;_2&quot;:54},{&quot;_1&quot;:32,&quot;_2&quot;:96},{&quot;_1&quot;:33,&quot;_2&quot;:68},{&quot;_1&quot;:34,&quot;_2&quot;:82},{&quot;_1&quot;:35,&quot;_2&quot;:58},{&quot;_1&quot;:36,&quot;_2&quot;:4},{&quot;_1&quot;:37,&quot;_2&quot;:8},{&quot;_1&quot;:38,&quot;_2&quot;:63},{&quot;_1&quot;:39,&quot;_2&quot;:70},{&quot;_1&quot;:40,&quot;_2&quot;:27},{&quot;_1&quot;:41,&quot;_2&quot;:73},{&quot;_1&quot;:42,&quot;_2&quot;:30},{&quot;_1&quot;:43,&quot;_2&quot;:32},{&quot;_1&quot;:44,&quot;_2&quot;:84},{&quot;_1&quot;:45,&quot;_2&quot;:80},{&quot;_1&quot;:46,&quot;_2&quot;:56},{&quot;_1&quot;:47,&quot;_2&quot;:23},{&quot;_1&quot;:48,&quot;_2&quot;:53},{&quot;_1&quot;:49,&quot;_2&quot;:43},{&quot;_1&quot;:50,&quot;_2&quot;:98},{&quot;_1&quot;:51,&quot;_2&quot;:37},{&quot;_1&quot;:52,&quot;_2&quot;:87},{&quot;_1&quot;:53,&quot;_2&quot;:17},{&quot;_1&quot;:54,&quot;_2&quot;:91},{&quot;_1&quot;:55,&quot;_2&quot;:81},{&quot;_1&quot;:56,&quot;_2&quot;:35},{&quot;_1&quot;:57,&quot;_2&quot;:89},{&quot;_1&quot;:58,&quot;_2&quot;:29},{&quot;_1&quot;:59,&quot;_2&quot;:10},{&quot;_1&quot;:60,&quot;_2&quot;:67},{&quot;_1&quot;:61,&quot;_2&quot;:28},{&quot;_1&quot;:62,&quot;_2&quot;:24},{&quot;_1&quot;:63,&quot;_2&quot;:64},{&quot;_1&quot;:64,&quot;_2&quot;:11},{&quot;_1&quot;:65,&quot;_2&quot;:26},{&quot;_1&quot;:66,&quot;_2&quot;:41},{&quot;_1&quot;:67,&quot;_2&quot;:74},{&quot;_1&quot;:68,&quot;_2&quot;:49},{&quot;_1&quot;:69,&quot;_2&quot;:2},{&quot;_1&quot;:70,&quot;_2&quot;:50},{&quot;_1&quot;:71,&quot;_2&quot;:38},{&quot;_1&quot;:72,&quot;_2&quot;:21},{&quot;_1&quot;:73,&quot;_2&quot;:76},{&quot;_1&quot;:74,&quot;_2&quot;:33},{&quot;_1&quot;:75,&quot;_2&quot;:83},{&quot;_1&quot;:76,&quot;_2&quot;:88},{&quot;_1&quot;:77,&quot;_2&quot;:93},{&quot;_1&quot;:78,&quot;_2&quot;:77},{&quot;_1&quot;:79,&quot;_2&quot;:22},{&quot;_1&quot;:80,&quot;_2&quot;:0},{&quot;_1&quot;:81,&quot;_2&quot;:14},{&quot;_1&quot;:82,&quot;_2&quot;:16},{&quot;_1&quot;:83,&quot;_2&quot;:57},{&quot;_1&quot;:84,&quot;_2&quot;:85},{&quot;_1&quot;:85,&quot;_2&quot;:20},{&quot;_1&quot;:86,&quot;_2&quot;:90},{&quot;_1&quot;:87,&quot;_2&quot;:47},{&quot;_1&quot;:88,&quot;_2&quot;:13},{&quot;_1&quot;:89,&quot;_2&quot;:71},{&quot;_1&quot;:90,&quot;_2&quot;:60},{&quot;_1&quot;:91,&quot;_2&quot;:69},{&quot;_1&quot;:92,&quot;_2&quot;:86},{&quot;_1&quot;:93,&quot;_2&quot;:65},{&quot;_1&quot;:94,&quot;_2&quot;:36},{&quot;_1&quot;:95,&quot;_2&quot;:3},{&quot;_1&quot;:96,&quot;_2&quot;:7},{&quot;_1&quot;:97,&quot;_2&quot;:15},{&quot;_1&quot;:98,&quot;_2&quot;:59},{&quot;_1&quot;:99,&quot;_2&quot;:75}],&quot;genId&quot;:&quot;1655710671&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/pivotChart'], \n      function(playground, _magicpivotChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magicpivotChart,\n    \"o\": {\"width\":600,\"height\":400,\"derivedAttributes\":{},\"extraOptions\":{}}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n      <span class=\"chart-total-item-count\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anond36930360bdef1b18c66acf2a9391b75&quot;,&quot;initialValue&quot;:&quot;100&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> entries total</span>\n      <span class=\"chart-sampling-warning\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anonc3a47c517fdab21dee836cd49ea07761&quot;,&quot;initialValue&quot;:&quot;&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId, initialValue)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n      <div>\n      </div>\n    </div></div>\n            </div></div>\n      </div>\n    </div></div>"
+			},
+			"output_type": "execute_result",
+			"execution_count": 11,
+			"time": "Took: 2 seconds 576 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "A4D0A838557F4881AB168C70E3D4C841"
+		},
+		"cell_type": "markdown",
+		"source": "#Add Data from Spark to Cassandra\n###Create a new collection of data"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"output_stream_collapsed": true,
+			"collapsed": false,
+			"id": "90D3F3C39D3948E7A387CBAFE82D1B7B"
+		},
+		"cell_type": "code",
+		"source": "val moreData = for (i <- 100 until 200) yield ((s\"addedKey$i\"),i) ",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "moreData: scala.collection.immutable.IndexedSeq[(String, Int)] = Vector((addedKey100,100), (addedKey101,101), (addedKey102,102), (addedKey103,103), (addedKey104,104), (addedKey105,105), (addedKey106,106), (addedKey107,107), (addedKey108,108), (addedKey109,109), (addedKey110,110), (addedKey111,111), (addedKey112,112), (addedKey113,113), (addedKey114,114), (addedKey115,115), (addedKey116,116), (addedKey117,117), (addedKey118,118), (addedKey119,119), (addedKey120,120), (addedKey121,121), (addedKey122,122), (addedKey123,123), (addedKey124,124), (addedKey125,125), (addedKey126,126), (addedKey127,127), (addedKey128,128), (addedKey129,129), (addedKey130,130), (addedKey131,131), (addedKey132,132), (addedKey133,133), (addedKey134,134), (addedKey135,135), (addedKey136,136), (addedKey137,137), (ad..."
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 12,
+			"time": "Took: 980 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "DD83C3AF43694E2482AB3E5D0EC6EA5F"
+		},
+		"cell_type": "markdown",
+		"source": "###Convert the collection into an RDD, \"parallelizing\" it"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "9823DA24F13A4A398C555CD652C883F7"
+		},
+		"cell_type": "code",
+		"source": "val moreDataRdd = sparkContext.parallelize(moreData) ",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "moreDataRdd: org.apache.spark.rdd.RDD[(String, Int)] = ParallelCollectionRDD[5] at parallelize at <console>:73\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 13,
+			"time": "Took: 846 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "0DA9ACAAF33745139C4DE3099BA4F933"
+		},
+		"cell_type": "markdown",
+		"source": "### Store in Cassandra using the implicit methods on RDD"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "E15F53BD3E094AA2A20DAD31C16D5CB8"
+		},
+		"cell_type": "code",
+		"source": "moreDataRdd.saveToCassandra(\"test\",\"kv\")",
+		"outputs": [{
+			"metadata": {},
+			"data": {
+				"text/html": ""
+			},
+			"output_type": "execute_result",
+			"execution_count": 14,
+			"time": "Took: 1 second 786 milliseconds, at 2017-1-2 5:2"
+		}]
+	}, {
+		"metadata": {
+			"id": "553976BF10374CEA81903C17E1797FC7"
+		},
+		"cell_type": "markdown",
+		"source": "### Verify that the added data is there\n_Note that we don't need to re-declare the RDD. An action, such as `count` will trigger a re-computation of the RDD and therefore the new data will be taken into account_"
+	}, {
+		"metadata": {
+			"trusted": true,
+			"input_collapsed": false,
+			"collapsed": false,
+			"id": "20E25EEEAEE1493E99C3F13F564ED04B"
+		},
+		"cell_type": "code",
+		"source": "rdd.count",
+		"outputs": [{
+			"name": "stdout",
+			"output_type": "stream",
+			"text": "res22: Long = 200\n"
+		}, {
+			"metadata": {},
+			"data": {
+				"text/html": "200"
+			},
+			"output_type": "execute_result",
+			"execution_count": 15,
+			"time": "Took: 4 seconds 956 milliseconds, at 2017-1-2 5:2"
+		}]
+	}],
+	"nbformat": 4
+}
