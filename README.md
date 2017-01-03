@@ -11,7 +11,8 @@
 1. Drag and drop `Twitter to Cassandra.snb` on to the Spark Notebook files tab
 1. Run `docker ps | grep my-cassandra | cut -f1 -d" "` to determine Cassandra instance hostname. 
 Note: The IP address for the Cassandra instance is in the environment variables for the 
-Spark Notebook instance.
+Spark Notebook instance. This is true if `--link` is used when running Spark Notebook. For example,
+`MY_CASSANDRA_PORT_9042_TCP_ADDR, value: 172.17.0.2`.
 1. Set up metadata (Edit -> Edit Metadata)
     ```
     "customLocalRepo": "/tmp/repo",
@@ -58,7 +59,6 @@ of sentiment analysis on Tweets using Spark
 `twurl -t -H stream.twitter.com /1.1/statuses/sample.json`
 
 ## Env variables dump
-
 ```
 import scala.collection.JavaConversions._
 
