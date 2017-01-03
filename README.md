@@ -26,11 +26,6 @@ Spark Notebook instance. This is true if `--link` is used when running Spark Not
     ```
 1. Execute cells in notebook
 
-1. Set Twitter credentials using form in training example or do so in metadata?
-1. Add Spark Twitter library dependencies in metadata
-1. See `Twitter example` notebook that is bundled with distribution
-
-
 ## Reference
 - [Github repo](https://github.com/andypetrella/spark-notebook/) for Spark Notebook 
 - From O'Reilly class: `docker run --rm -it -m 8g --net=host datafellas/distributed-pipeline-quotes:2.0.1 bash`
