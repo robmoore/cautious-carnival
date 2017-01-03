@@ -36,6 +36,7 @@ of sentiment analysis on Tweets using Spark
 - Also, see configuration example from `training-exercices-Assessment 1.snb`
 - Useful info in both `training-exercices-Assessment 1.snb` and `training-exercices-Assessment 2.snb`
 - http://ampcamp.berkeley.edu/3/exercises/realtime-processing-with-spark-streaming.html
+- http://blog.rackspace.com/behind-the-curtain-twitter-sentiment-analysis-demo-sample-app-code
 - https://dev.twitter.com/streaming/public
 - https://github.com/apache/bahir/blob/master/streaming-twitter/examples/src/main/scala/org/apache/spark/examples/streaming/twitter/TwitterPopularTags.scala
 - https://github.com/apache/bahir/tree/master/streaming-twitter
